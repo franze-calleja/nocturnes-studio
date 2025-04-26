@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { frames } from "@/app/data/frames"; // Updated path
+import { frames } from "@/app/data/frames";
 
 export default function ComposePageContent() {
   const searchParams = useSearchParams();
@@ -22,6 +22,9 @@ export default function ComposePageContent() {
 
   // Store photos in state so overlay changes can always re-compose
   const [photos, setPhotos] = useState<string[]>([]);
+
+  // Orientation information
+  const [isLandscape, setIsLandscape] = useState(true);
 
   // Track if initial compose is done
   const [initialComposed, setInitialComposed] = useState(false);
@@ -66,6 +69,8 @@ export default function ComposePageContent() {
         const stored = localStorage.getItem("nocturne-photos");
         let loadedPhotos: string[] = [];
         let overlayFromStorage = "";
+        let storedIsLandscape = true;
+
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed.photos)) {
@@ -73,8 +78,16 @@ export default function ComposePageContent() {
           } else if (Array.isArray(parsed)) {
             loadedPhotos = parsed;
           }
+
+          // Get orientation information if available
+          if (typeof parsed.isLandscape === "boolean") {
+            storedIsLandscape = parsed.isLandscape;
+            setIsLandscape(storedIsLandscape);
+          }
+
           if (parsed.overlay) overlayFromStorage = parsed.overlay;
         }
+
         if (
           (!loadedPhotos || loadedPhotos.length === 0 || !selectedFrame) &&
           !composedImage
@@ -82,13 +95,16 @@ export default function ComposePageContent() {
           router.push("/frames");
           return;
         }
+
         if (overlayFromStorage && overlayFromStorage !== selectedOverlay) {
           setSelectedOverlay(overlayFromStorage);
         }
+
         if (loadedPhotos && loadedPhotos.length > 0) {
           setPhotos(loadedPhotos);
-          await composePhotos(loadedPhotos);
+          await composePhotos(loadedPhotos, storedIsLandscape);
         }
+
         // Only clean up localStorage after first compose
         if (!initialComposed && loadedPhotos && loadedPhotos.length > 0) {
           localStorage.removeItem("nocturne-photos");
@@ -108,12 +124,12 @@ export default function ComposePageContent() {
   // Re-compose when overlay changes
   useEffect(() => {
     if (photos.length > 0 && selectedFrame) {
-      composePhotos(photos);
+      composePhotos(photos, isLandscape);
     }
     // eslint-disable-next-line
   }, [selectedOverlay, selectedFrame]);
 
-  const composePhotos = async (photos: string[]) => {
+  const composePhotos = async (photos: string[], photoIsLandscape: boolean) => {
     if (!canvasRef.current || !selectedFrame) return;
 
     const canvas = canvasRef.current;
@@ -199,14 +215,35 @@ export default function ComposePageContent() {
         let drawX = slot.x;
         let drawY = slot.y;
 
-        if (imgAspectRatio > slotAspectRatio) {
-          // Image is wider than slot
-          drawHeight = slot.width / imgAspectRatio;
-          drawY = slot.y + (slot.height - drawHeight) / 2;
+        // Check if the photo orientation matches what we expect for this frame
+        const photoOrientationMatches =
+          (photoIsLandscape && selectedFrame.layout === "horizontal") ||
+          (!photoIsLandscape && selectedFrame.layout === "vertical");
+
+        if (photoOrientationMatches) {
+          // Standard aspect ratio handling
+          if (imgAspectRatio > slotAspectRatio) {
+            // Image is wider than slot
+            drawHeight = slot.width / imgAspectRatio;
+            drawY = slot.y + (slot.height - drawHeight) / 2;
+          } else {
+            // Image is taller than slot
+            drawWidth = slot.height * imgAspectRatio;
+            drawX = slot.x + (slot.width - drawWidth) / 2;
+          }
         } else {
-          // Image is taller than slot
-          drawWidth = slot.height * imgAspectRatio;
-          drawX = slot.x + (slot.width - drawWidth) / 2;
+          // Handle mismatch - we need to center and crop
+          if (imgAspectRatio < 1 && slotAspectRatio > 1) {
+            // Portrait photo in landscape slot - center horizontally
+            drawHeight = slot.height;
+            drawWidth = slot.height * imgAspectRatio;
+            drawX = slot.x + (slot.width - drawWidth) / 2;
+          } else if (imgAspectRatio > 1 && slotAspectRatio < 1) {
+            // Landscape photo in portrait slot - center vertically
+            drawWidth = slot.width;
+            drawHeight = slot.width / imgAspectRatio;
+            drawY = slot.y + (slot.height - drawHeight) / 2;
+          }
         }
 
         ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
