@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { frames } from "../data/frames";
-import path from "path";
-import fs from "fs";
 
 export default function ComposePage() {
   const searchParams = useSearchParams();
