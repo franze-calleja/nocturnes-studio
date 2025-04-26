@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1800" height="1200" viewBox="0 0 1800 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1800" height="1200" fill="url(#background-gradient)"/>
+  
+  <!-- Starry effect overlay -->
+  <rect width="1800" height="1200" fill="url(#star-pattern)" opacity="0.1"/>
+  
+  <!-- Photo Slots with 16:9 aspect ratio -->
+  <g id="photo-slots">
+    <!-- Top Left Photo -->
+    <rect x="90" y="90" width="800" height="450" rx="8" fill="white" stroke="url(#border-gradient)" stroke-width="4"/>
+    <!-- Top Right Photo -->
+    <rect x="910" y="90" width="800" height="450" rx="8" fill="white" stroke="url(#border-gradient)" stroke-width="4"/>
+    <!-- Bottom Left Photo -->
+    <rect x="90" y="560" width="800" height="450" rx="8" fill="white" stroke="url(#border-gradient)" stroke-width="4"/>
+    <!-- Bottom Right Photo -->
+    <rect x="910" y="560" width="800" height="450" rx="8" fill="white" stroke="url(#border-gradient)" stroke-width="4"/>
+  </g>
+
+  <!-- Frame Border -->
+  <path d="M20 20 L1780 20 L1780 1180 L20 1180 L20 20" stroke="url(#border-gradient)" stroke-width="6" fill="none" rx="12"/>
+
+  <!-- Decorative Corner Elements -->
+  <g id="corners">
+    <path d="M10 10 L100 10 L100 30 L30 30 L30 100 L10 100 Z" fill="url(#border-gradient)"/>
+    <path d="M1790 10 L1700 10 L1700 30 L1770 30 L1770 100 L1790 100 Z" fill="url(#border-gradient)"/>
+    <path d="M10 1190 L100 1190 L100 1170 L30 1170 L30 1100 L10 1100 Z" fill="url(#border-gradient)"/>
+    <path d="M1790 1190 L1700 1190 L1700 1170 L1770 1170 L1770 1100 L1790 1100 Z" fill="url(#border-gradient)"/>
+  </g>
+
+  <!-- Center Divider -->
+  <line x1="900" y1="90" x2="900" y2="1010" stroke="url(#border-gradient)" stroke-width="2"/>
+
+  <!-- Gradients and Patterns -->
+  <defs>
+    <linearGradient id="background-gradient" x1="0" y1="0" x2="1800" y2="1200">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F8F8F8"/>
+    </linearGradient>
+
+    <linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#20B2AA"/>
+      <stop offset="50%" stop-color="#48D1CC"/>
+      <stop offset="100%" stop-color="#20B2AA"/>
+    </linearGradient>
+
+    <pattern id="star-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+      <circle cx="50" cy="50" r="1" fill="#48D1CC" opacity="0.3"/>
+      <circle cx="20" cy="80" r="1" fill="#20B2AA" opacity="0.3"/>
+      <circle cx="80" cy="20" r="1" fill="#48D1CC" opacity="0.3"/>
+    </pattern>
+  </defs>
+</svg>

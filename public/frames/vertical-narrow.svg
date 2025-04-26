@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="1500" viewBox="0 0 600 1500" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- White background -->
+    <rect width="600" height="1500" fill="white"/>
+    
+    <!-- Photo slots with subtle borders -->
+    <rect x="40" y="75" width="520" height="300" stroke="#E5E7EB" stroke-width="1" fill="none"/>
+    <rect x="40" y="395" width="520" height="300" stroke="#E5E7EB" stroke-width="1" fill="none"/>
+    <rect x="40" y="715" width="520" height="300" stroke="#E5E7EB" stroke-width="1" fill="none"/>
+    <rect x="40" y="1035" width="520" height="300" stroke="#E5E7EB" stroke-width="1" fill="none"/>
+    
+    <!-- Footer text will be added dynamically by the canvas -->
+</svg>
