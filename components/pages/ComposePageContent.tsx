@@ -38,6 +38,7 @@ export default function ComposePageContent() {
         { name: "CUTESY", file: "vertical-overlay2.svg" },
         { name: "MINECRAFT", file: "vertical-overlay3.svg" },
         { name: "RETRO COMICS", file: "vertical-overlay4.svg" },
+        { name: "ONE PIECE", file: "vertical-overlay5.png" },
       ];
     } else if (selectedFrame?.layout === "horizontal") {
       overlays = [];
