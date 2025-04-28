@@ -38,7 +38,7 @@ export default function FrameSelection() {
       <div className="max-w-7xl mx-auto relative z-10 pt-12">
         <div className="flex items-center gap-6 mb-12 pl-4">
           <motion.div
-            onClick={() => router.back()}
+            onClick={() => router.push("/")}
             className="cursor-pointer w-20 h-20 relative group -mt-2"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

@@ -34,14 +34,24 @@ export default function ComposePageContent() {
     let overlays: { name: string; file: string }[] = [];
     if (selectedFrame?.layout === "vertical") {
       overlays = [
-        { name: "Y2K", file: "vertical-overlay.svg" },
-        { name: "CUTESY", file: "vertical-overlay2.svg" },
-        { name: "MINECRAFT", file: "vertical-overlay3.svg" },
-        { name: "RETRO COMICS", file: "vertical-overlay4.svg" },
-        { name: "ONE PIECE", file: "vertical-overlay5.png" },
+        { name: "Y2K", file: "vertical-y2k.svg" },
+        { name: "CUTESY", file: "vertical-cutesy.svg" },
+        { name: "MINECRAFT", file: "vertical-minecraft.svg" },
+        { name: "RETRO COMICS", file: "vertical-comic.svg" },
+        { name: "ONE PIECE", file: "vertical-one-piece.png" },
+        { name: "DAYDREAM", file: "vertical-daydream.png" },
       ];
     } else if (selectedFrame?.layout === "horizontal") {
-      overlays = [];
+      overlays = [
+        { name: "CLASSIC", file: "quad-classic.png" },
+        { name: "CLASSIC 2", file: "quad-classic2.png" },
+        { name: "CLASSIC 3", file: "quad-classic3.png" },
+        { name: "CLASSIC 4", file: "quad-classic4.png" },
+        { name: "Y2K", file: "quad-y2k.png" },
+        { name: "MINECRAFT", file: "quad-minecraft.png" },
+        { name: "RETRO COMIC", file: "quad-comic.png" },
+        { name: "ONE PIECE", file: "quad-one-piece.png" },
+      ];
       // Add horizontal overlays here if you add any in the future
     }
     setOverlayOptions(overlays);
