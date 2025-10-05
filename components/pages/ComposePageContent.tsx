@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { frames } from "@/app/data/frames";
+import QRCode from "qrcode";
 
 export default function ComposePageContent() {
   const searchParams = useSearchParams();
@@ -28,6 +29,54 @@ export default function ComposePageContent() {
 
   // Track if initial compose is done
   const [initialComposed, setInitialComposed] = useState(false);
+
+  // QR download flow state
+  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
+  const [qrImageSrc, setQrImageSrc] = useState<string | null>(null);
+  const [qrDownloadUrl, setQrDownloadUrl] = useState<string | null>(null);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [uploadId, setUploadId] = useState<string | null>(null);
+  const uploadIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    uploadIdRef.current = uploadId;
+  }, [uploadId]);
+
+  const resetQrState = useCallback(() => {
+    setQrImageSrc(null);
+    setQrDownloadUrl(null);
+    setShowQrModal(false);
+    setQrError(null);
+  }, []);
+
+  const deleteUpload = useCallback(async (id: string | null) => {
+    if (!id) return;
+    try {
+      await fetch(`/api/uploads/${id}`, { method: "DELETE" });
+    } catch (error) {
+      console.error("Failed to clean up uploaded image", error);
+    }
+  }, []);
+
+  const cleanupUpload = useCallback(async () => {
+    const currentId = uploadIdRef.current;
+    if (!currentId) return;
+    uploadIdRef.current = null;
+    setUploadId(null);
+    await deleteUpload(currentId);
+  }, [deleteUpload]);
+
+  useEffect(() => {
+    return () => {
+      if (uploadIdRef.current) {
+        // Fire-and-forget cleanup when navigation leaves this page
+        fetch(`/api/uploads/${uploadIdRef.current}`, { method: "DELETE" }).catch(
+          () => {}
+        );
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Dynamically set overlay options based on frame layout
@@ -131,6 +180,13 @@ export default function ComposePageContent() {
     initCompose();
     // eslint-disable-next-line
   }, [frameId, selectedFrame, router]);
+
+  useEffect(() => {
+    if (!composedImage) return;
+    resetQrState();
+    cleanupUpload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [composedImage]);
 
   // Re-compose when overlay changes
   useEffect(() => {
@@ -291,8 +347,72 @@ export default function ComposePageContent() {
     link.click();
   };
 
+  const handleShowQr = async () => {
+    if (!composedImage || isGeneratingQr) return;
+
+    setIsGeneratingQr(true);
+    setQrError(null);
+
+    try {
+      let currentId = uploadIdRef.current;
+      if (!currentId) {
+        const response = await fetch("/api/uploads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: composedImage }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Upload failed with status ${response.status}`);
+        }
+
+        const payload = (await response.json()) as { id: string; url: string };
+        currentId = payload.id;
+        setUploadId(currentId);
+      }
+
+      if (!currentId) {
+        throw new Error("Unable to determine upload id");
+      }
+
+      const origin = window.location.origin;
+      const downloadUrl = `${origin}/api/uploads/${currentId}`;
+      setQrDownloadUrl(downloadUrl);
+      const qrSrc = await QRCode.toDataURL(downloadUrl, {
+        margin: 1,
+        width: 320,
+        color: {
+          dark: "#000000",
+          light: "#ffffff",
+        },
+      });
+
+      setQrImageSrc(qrSrc);
+      setShowQrModal(true);
+    } catch (error) {
+      console.error("Failed to generate QR code", error);
+      setQrError("We couldn't generate the QR code. Please try again.");
+      await cleanupUpload();
+      resetQrState();
+    } finally {
+      setIsGeneratingQr(false);
+    }
+  };
+
+  const handleCloseQrModal = () => {
+    setShowQrModal(false);
+  };
+
+  const handleConfirmQrDownload = async () => {
+    await cleanupUpload();
+    resetQrState();
+  };
+
   const handleRetake = () => {
-    router.push("/frames");
+    resetQrState();
+    cleanupUpload().finally(() => {
+      router.push("/frames");
+    });
   };
 
   return (
@@ -344,7 +464,7 @@ export default function ComposePageContent() {
           )}
         </div>
 
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
           <button
             onClick={handleDownload}
             disabled={!composedImage}
@@ -353,13 +473,61 @@ export default function ComposePageContent() {
             Download Photos
           </button>
           <button
+            onClick={handleShowQr}
+            disabled={!composedImage || isGeneratingQr}
+            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-900 text-white rounded-lg shadow-lg transition-all duration-300"
+          >
+            {isGeneratingQr ? "Preparing QR..." : "Download via QR"}
+          </button>
+          <button
             onClick={handleRetake}
             className="px-8 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg shadow-lg transition-all duration-300"
           >
             Take New Photos
           </button>
         </div>
+
+        {qrError && (
+          <p className="mt-4 text-center text-red-400">{qrError}</p>
+        )}
       </div>
+
+      {showQrModal && qrImageSrc && qrDownloadUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm rounded-xl bg-[#1b1230] p-6 text-center shadow-2xl border border-purple-700/40">
+            <h2 className="text-2xl font-semibold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300">
+              Scan to Download
+            </h2>
+            <div className="mx-auto mb-4 w-60 h-60 rounded-xl bg-white p-4 flex items-center justify-center">
+              <Image
+                src={qrImageSrc}
+                alt="QR code"
+                width={224}
+                height={224}
+                unoptimized
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <p className="text-sm text-purple-200/80 mb-6 break-all">
+              {qrDownloadUrl}
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleConfirmQrDownload}
+                className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg transition-all duration-300"
+              >
+                Mark as Downloaded
+              </button>
+              <button
+                onClick={handleCloseQrModal}
+                className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all duration-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

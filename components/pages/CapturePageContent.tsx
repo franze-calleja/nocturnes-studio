@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { frames } from "@/app/data/frames";
 
@@ -106,28 +107,8 @@ export default function CapturePageContent() {
     };
   }, [selectedFrame]);
 
-  // 2) core countdown logic
-  const startCountdown = () => {
-    if (isCapturing) return;
-    setIsCapturing(true);
-    let count = 3;
-    setCountdown(count);
-
-    const interval = setInterval(() => {
-      count -= 1;
-      if (count > 0) {
-        setCountdown(count);
-      } else {
-        clearInterval(interval);
-        setCountdown(null);
-        takePhoto();
-        setIsCapturing(false);
-      }
-    }, 1000);
-  };
-
-  // 3) capture a single photo with orientation handling
-  const takePhoto = () => {
+  // 2) capture a single photo with orientation handling
+  const takePhoto = useCallback(() => {
     if (!videoRef.current || !canvasRef.current || !isCameraReady) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -159,7 +140,27 @@ export default function CapturePageContent() {
     // Convert to high-quality JPEG
     const data = canvas.toDataURL("image/jpeg", 0.95);
     setCapturedPhotos((prev) => [...prev, data]);
-  };
+  }, [isCameraReady, isLandscape]);
+
+  // 3) core countdown logic
+  const startCountdown = useCallback(() => {
+    if (isCapturing) return;
+    setIsCapturing(true);
+    let count = 3;
+    setCountdown(count);
+
+    const interval = setInterval(() => {
+      count -= 1;
+      if (count > 0) {
+        setCountdown(count);
+      } else {
+        clearInterval(interval);
+        setCountdown(null);
+        takePhoto();
+        setIsCapturing(false);
+      }
+    }, 1000);
+  }, [isCapturing, takePhoto]);
 
   // 4) when we have just taken one (and still need more), schedule the next
   useEffect(() => {
@@ -167,7 +168,7 @@ export default function CapturePageContent() {
       const t = setTimeout(startCountdown, 1500);
       return () => clearTimeout(t);
     }
-  }, [capturedPhotos.length, totalSlots]);
+  }, [capturedPhotos.length, totalSlots, startCountdown]);
 
   // 5) entry point for the very first shot
   const handleStart = () => {
@@ -256,12 +257,15 @@ export default function CapturePageContent() {
                 key={i}
                 className={`${
                   isLandscape ? "aspect-video" : "aspect-[9/16]"
-                } rounded-lg overflow-hidden`}
+                } relative rounded-lg overflow-hidden`}
               >
-                <img
+                <Image
                   src={p}
                   alt={`Captured ${i + 1}`}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                  unoptimized
+                  className="object-cover"
                 />
               </div>
             ))}
