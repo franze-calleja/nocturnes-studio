@@ -73,15 +73,21 @@ export default function Home() {
         </motion.div>
         <motion.h1
           variants={itemVariants}
-          className="text-6xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-indigo-300 to-purple-300"
+          className="text-7xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-indigo-300 to-purple-300"
         >
           Nocturne&apos;s Studio
         </motion.h1>
         <motion.p
           variants={itemVariants}
-          className="text-xl text-purple-200/80 max-w-md mx-auto mb-8"
+          className="text-2xl text-purple-200/80 max-w-md mx-auto mb-4"
         >
           Capture your moments in the ethereal glow of moonlight
+        </motion.p>
+        <motion.p
+          variants={itemVariants}
+          className="text-lg text-purple-200/80 max-w-md mx-auto mb-8"
+        >
+          By: Calleja and Revedezo
         </motion.p>
         <motion.div variants={itemVariants} className="space-y-6">
           <motion.a
