@@ -83,12 +83,18 @@ export default function ComposePageContent() {
     let overlays: { name: string; file: string }[] = [];
     if (selectedFrame?.layout === "vertical") {
       overlays = [
+        { name: "BLUE JAVA", file: "blue.png" },
+        { name: "RED C#", file: "red.png" },
+        { name: "BLACK PYTHON", file: "black.png" },
+        { name: "GREEN PHP", file: "green.png" },
+        { name: "ECTG EXCLUSIVE", file: "ectg.png" },
         { name: "Y2K", file: "vertical-y2k.svg" },
         { name: "CUTESY", file: "vertical-cutesy.svg" },
-        { name: "MINECRAFT", file: "vertical-minecraft.svg" },
+        { name: "MINECRAFT", file: "minecraft.png" },
         { name: "RETRO COMICS", file: "vertical-comic.svg" },
-        { name: "ONE PIECE", file: "vertical-one-piece.png" },
-        { name: "DAYDREAM", file: "vertical-daydream.png" },
+        { name: "ONE PIECE", file: "onepiece.png" },
+        { name: "DAYDREAM", file: "daydream.png" },
+      
       ];
     } else if (selectedFrame?.layout === "horizontal") {
       overlays = [
